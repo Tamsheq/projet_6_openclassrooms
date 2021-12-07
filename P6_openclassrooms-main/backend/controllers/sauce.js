@@ -5,7 +5,7 @@ const sauce = require('../models/sauce');
 exports.getAllSauces = (req, res, next) => {
     sauce.find()
         .then(newSauce => res.status(200).json(newSauce))
-        .catch(error => res.status(400).json({ error }));
+        .catch(error => { console.log(error); res.status(400).json({ message: error }) });
 };
 
 // Get an specific sauce (id params)
@@ -23,12 +23,12 @@ exports.createSauce = (req, res, next) => {
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
         likes: 0,
         dislikes: 0,
-        usersLiked: '',
-        usersDisliked: ''
+        usersLiked: [],
+        usersDisliked: []
     });
     newSauce.save()
         .then(() => res.status(201).json({ message: 'Nouvelle sauce insérée avec succès !' }))
-        .catch(error => res.status(400).json({ error }));
+        .catch(error => { console.log(error); res.status(400).json({ message: error }) });
 };
 
 // Update sauce existing
@@ -48,7 +48,7 @@ exports.updateSauce = (req, res, next) => {
         } : { ...req.body };
         sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
             .then(() => res.status(200).json({ message: 'Objet modifié !' }))
-            .catch(error => res.status(400).json({ error }));
+            .catch(error => { console.log(error); res.status(400).json({ message: error }) });
     }, 250);
 };
 
@@ -60,7 +60,7 @@ exports.deleteSauce = (req, res, next) => {
             fs.unlink('images/' + filename, () => {
                 sauce.deleteOne({ _id: req.params.id })
                     .then(() => res.status(200).json({ message: 'Objet supprimé !' }))
-                    .catch(error => res.status(400).json({ error }));
+                    .catch(error => { console.log(error); res.status(400).json({ message: error }) });
             });
         })
         .catch(error => res.status(500).json({ error }));
@@ -78,7 +78,7 @@ exports.likeSauce = (req, res, next) => {
 
             // Check if user already disliked this
             if (newSauce.usersLiked) {
-                tabLikes = JSON.parse(newSauce.usersLiked);
+                tabLikes = newSauce.usersLiked;
                 while (i < tabLikes.length) {
                     if (tabLikes[i] == user_id) {
                         if (type_like == 0 || type_like == -1) { // Delete userid into 'usersLikes' if cancel/dislike
@@ -91,7 +91,7 @@ exports.likeSauce = (req, res, next) => {
                 }
             }
             if (newSauce.usersDisliked) {
-                tabDislikes = JSON.parse(newSauce.usersDisliked); i = 0;
+                tabDislikes = newSauce.usersDisliked; i = 0;
                 while (i < tabDislikes.length) {
                     if (tabDislikes[i] == user_id) {
                         if (type_like == 0 || type_like == 1) { // Delete userid into 'usersDislikes' if cancel/like
@@ -121,8 +121,8 @@ exports.likeSauce = (req, res, next) => {
                 usersDisliked: JSON.stringify(tabDislikes)
             })
                 .then(() => res.status(200).json({ message: 'Updated ! ' }))
-                .catch(error => res.status(400).json({ error }));
+                .catch(error => { console.log(error); res.status(400).json({ message: error }) })
 
         })
-        .catch(error => res.status(500).json({ error }));
+        .catch(e => console.log(e));
 };
